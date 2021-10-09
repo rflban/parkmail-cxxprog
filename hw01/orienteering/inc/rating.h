@@ -4,6 +4,9 @@
 struct rating;
 struct team_result;
 
+struct rating* rating_create();
+void rating_destroy(struct rating** rating);
+
 int rating_size(const struct rating* rating, unsigned int* size);
 
 int rating_add(struct rating* rating, const struct team_result* result);

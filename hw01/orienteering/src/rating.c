@@ -27,11 +27,11 @@ static int sift_down(
             unsigned int right = (parent << 1) + 2;
             unsigned int min_child = left;
 
-            if (right < size && team_result_cmp(heap + right, heap + left) < 0)
+            if (right < size && team_result_cmp(heap + right, heap + left) > 0)
                 min_child = right;
 
             subtree_is_heap =
-                team_result_cmp(heap + parent, heap + min_child) <= 0;
+                team_result_cmp(heap + parent, heap + min_child) >= 0;
 
             if (!subtree_is_heap) {
                 temp = heap[parent];
@@ -51,7 +51,7 @@ static int build_heap(struct team_result* heap, unsigned int size) {
     if (!heap)
         exit_code = O_UNEXPECTED_NULL_ARG;
     else
-        for (unsigned int idx = size / 2; idx >= 0; --idx)
+        for (int idx = size / 2; idx >= 0; --idx)
             exit_code = sift_down(heap, size, idx);
 
     return exit_code;
@@ -82,6 +82,25 @@ static int grow_rating_buffer(struct rating* rating) {
     return exit_code;
 }
 
+struct rating* rating_create() {
+    struct rating* rating = (struct rating*)malloc(sizeof(struct rating));
+
+    if (rating) {
+        rating->buffer = NULL;
+        rating->buffer_size = 0;
+        rating->size = 0;
+    }
+
+    return rating;
+}
+
+void rating_destroy(struct rating** rating) {
+    if (rating) {
+        free(*rating);
+        *rating = NULL;
+    }
+}
+
 int rating_size(const struct rating* rating, unsigned int* size) {
     if (!rating || !size)
         return O_UNEXPECTED_NULL_ARG;
@@ -95,7 +114,7 @@ int rating_add(struct rating* rating, const struct team_result* result) {
 
     if (!rating || !result)
         exit_code = O_UNEXPECTED_NULL_ARG;
-    else if (!rating->buffer)
+    else if (!rating->buffer && rating->buffer_size != 0)
         exit_code = O_DAMAGED_DATA; 
     else if (rating->size >= rating->buffer_size)
         exit_code = grow_rating_buffer(rating);
@@ -152,7 +171,7 @@ int rating_pick_best_of(
         }
 
         if (exit_code == O_SUCCESS) {
-            for (unsigned int idx = 0; idx < qty; ++idx)
+            for (unsigned int idx = 0; idx < qty; ++idx) 
                 best_results[idx] = heap[rating->size - 1 - idx];
         }
 
