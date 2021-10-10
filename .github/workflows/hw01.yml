@@ -5,7 +5,8 @@ on:
       - hw01
       - master
   pull_request:
-    - master
+    branches:
+      - master
 jobs:
   build_and_test:
     runs-on: ubuntu-20.04
