@@ -6,7 +6,9 @@ set(CMAKE_C_STANDARD 99)
 add_compile_options(-g3)
 
 add_subdirectory(orienteering)
-add_executable(run main.c)
+add_executable(top10 main.c)
 
-target_include_directories(run PRIVATE orienteering/inc/)
-target_link_libraries(run orienteering)
+target_include_directories(top10 PRIVATE orienteering/inc/)
+target_link_libraries(top10 orienteering)
+
+add_subdirectory(tests)
