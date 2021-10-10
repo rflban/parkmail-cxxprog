@@ -23,17 +23,21 @@ jobs:
           sudo apt install libgtest-dev
       - name: Build
         run: |
-          cd hw01
+          cd homework01
           mkdir build && cd build
           cmake .. -DCMAKE_EXPORT_COMPILE_COMMANDS=1
           make
       - name: Lint
         run: |
-          cd hw01/build
+          cd homework01/build
           run-clang-tidy "../*" -p . > report-linter.txt
-      - name: Test
+      - name: Unit tests
         run: |
-          cd hw01/build
+          cd homework01/build
+          ./tests/test
+      - name: Memory check
+        run: |
+          cd homework01/build
           valgrind \
             --tool=memcheck --leak-check=full \
             --show-leak-kinds=all --undef-value-errors=no \
@@ -41,22 +45,22 @@ jobs:
             -- ./tests/test
       - name: Coverage
         run: |
-          cd hw01/build
-          lcov -t "hw01" -o hw01.info -c -d .
-          lcov --extract hw01.info "*/hw01/orienteering/*" -o hw01.info
-          genhtml -o report-coverage.html hw01.info
+          cd homework01/build
+          lcov -t "homework01" -o homework01.info -c -d .
+          lcov --extract homework01.info "*/homework01/orienteering/*" -o homework01.info
+          genhtml -o report-coverage.html homework01.info
       - name: Archive linter report
         uses: actions/upload-artifact@v2
         with:
           name: report-linter
-          path: hw01/build/report-linter.txt
+          path: homework01/build/report-linter.txt
       - name: Archive valgrind report
         uses: actions/upload-artifact@v2
         with:
           name: report-valgrind
-          path: hw01/build/report-valgrind.txt
+          path: homework01/build/report-valgrind.txt
       - name: Archive coverage report
         uses: actions/upload-artifact@v2
         with:
           name: report-coverage
-          path: hw01/build/report-coverage.html
+          path: homework01/build/report-coverage.html
