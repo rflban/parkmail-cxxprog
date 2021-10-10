@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.16)
 project(hw01 C CXX)
 
 set(CMAKE_C_STANDARD 99)
+add_compile_options(-g3)
 
 add_subdirectory(orienteering)
 add_executable(run main.c)

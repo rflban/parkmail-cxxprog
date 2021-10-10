@@ -3,7 +3,7 @@
 
 struct team_result {
     unsigned int number;
-    const char*  name;
+    char*  name;
     unsigned int route_time_secs;
     unsigned int control_point_qty;
     

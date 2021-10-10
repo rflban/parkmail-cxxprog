@@ -96,6 +96,10 @@ struct rating* rating_create() {
 
 void rating_destroy(struct rating** rating) {
     if (rating) {
+        for (unsigned int idx = 0; idx < (*rating)->size; ++idx)
+            free((*rating)->buffer[idx].name);
+
+        free((*rating)->buffer);
         free(*rating);
         *rating = NULL;
     }
@@ -119,8 +123,17 @@ int rating_add(struct rating* rating, const struct team_result* result) {
     else if (rating->size >= rating->buffer_size)
         exit_code = grow_rating_buffer(rating);
 
-    if (exit_code == O_SUCCESS)
-        rating->buffer[rating->size++] = *result;
+    if (exit_code == O_SUCCESS) {
+        char* name_buffer = (char*)malloc(strlen(result->name) + 1);
+        if (!name_buffer)
+            exit_code = O_BAD_ALLOC;
+        else {
+            strcpy(name_buffer, result->name);
+            rating->buffer[rating->size] = *result;
+            rating->buffer[rating->size].name = name_buffer;
+            rating->size += 1;
+        }
+    }
 
     return exit_code;
 }
