@@ -2,10 +2,10 @@ name: Homework01 CI
 on:
   push:
     branches:
-      - main
       - hw01
+      - master
   pull_request:
-    - main
+    - master
 jobs:
   build_and_test:
     runs-on: ubuntu-20.04
