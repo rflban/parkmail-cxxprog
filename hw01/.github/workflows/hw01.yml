@@ -1,0 +1,57 @@
+name: Homework01 CI
+on:
+  push:
+    branches:
+      - main
+      - hw01
+  pull_request:
+    - main
+jobs:
+  build_and_test:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Install tools and dependencies
+        run: |
+          sudo apt install build-essentianl
+          sudo apt install git
+          sudo apt install lcov
+          sudo apt install valgrind
+          sudo apt install clang-tidy
+          sudo apt install libgtest-dev
+      - name: Build
+        run: |
+          mkdir build && cd build
+          cmake .. -DCMAKE_EXPORT_COMPILE_COMMANDS=1
+          make
+      - name: Lint
+        run: |
+          run-clang-tidy "../*" -p . > report-linter.txt
+      - name: Test
+        run: |
+          valgrind \
+            --tool=memcheck --leak-check=full \
+            --show-leak-kinds=all --undef-value-errors=no \
+            --verbose --log-file=report-valgrind.txt \
+            -- ./tests/test
+      - name: Coverage
+        run: |
+          lcov -t "hw01" -o hw01.info -c -d .
+          lcov --extract hw01.info "*/hw01/orienteering/*" -o hw01.info
+          genhtml -o report-coverage.html hw01.info
+      - name: Archive linter report
+        uses: actions/upload-artifact@v2
+        with:
+          name: report-linter
+          path: report-linter.txt
+      - name: Archive valgrind report
+        uses: actions/upload-artifact@v2
+        with:
+          name: report-valgrind
+          path: report-valgrind.txt
+      - name: Archive coverage report
+        uses: actions/upload-artifact@v2
+        with:
+          name: report-coverage
+          path: report-coverage.html
