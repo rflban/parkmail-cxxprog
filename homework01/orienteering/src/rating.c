@@ -7,16 +7,16 @@
 #include "teamresult.h"
 
 struct rating {
-    struct team_result* buffer;
+    struct team* buffer;
     unsigned int buffer_size;
     unsigned int size;
 };
 
-static int sift_down(struct team_result* heap, unsigned int size,
+static int sift_down(struct team* heap, unsigned int size,
                      unsigned int parent) {
     int exit_code = O_SUCCESS;
     char subtree_is_heap = 0;
-    struct team_result temp;
+    struct team temp;
 
     if (!heap)
         exit_code = O_UNEXPECTED_NULL_ARG;
@@ -26,11 +26,11 @@ static int sift_down(struct team_result* heap, unsigned int size,
             unsigned int right = (parent << 1) + 2;
             unsigned int min_child = left;
 
-            if (right < size && team_result_cmp(heap[right], heap[left]) > 0)
+            if (right < size && team_cmp(heap[right], heap[left]) > 0)
                 min_child = right;
 
             subtree_is_heap =
-                team_result_cmp(heap[parent], heap[min_child]) >= 0;
+                team_cmp(heap[parent], heap[min_child]) >= 0;
 
             if (!subtree_is_heap) {
                 temp = heap[parent];
@@ -44,7 +44,7 @@ static int sift_down(struct team_result* heap, unsigned int size,
     return exit_code;
 }
 
-static int build_heap(struct team_result* heap, unsigned int size) {
+static int build_heap(struct team* heap, unsigned int size) {
     int exit_code = O_SUCCESS;
 
     if (!heap)
@@ -56,7 +56,7 @@ static int build_heap(struct team_result* heap, unsigned int size) {
     return exit_code;
 }
 
-static int grow_rating_buffer(struct rating* rating) {
+static int rating_grow_buffer(struct rating* rating) {
     int exit_code = O_SUCCESS;
 
     if (!rating)
@@ -67,7 +67,7 @@ static int grow_rating_buffer(struct rating* rating) {
         if (new_size == 0)
             new_size = 1;
 
-        struct team_result* new_buffer = (struct team_result*)realloc(
+        struct team* new_buffer = (struct team*)realloc(
             rating->buffer, new_size * sizeof(rating->buffer[0]));
 
         if (!new_buffer)
@@ -112,7 +112,7 @@ int rating_size(const struct rating* rating, unsigned int* size) {
     return O_SUCCESS;
 }
 
-int rating_add(struct rating* rating, const struct team_result* result) {
+int rating_add(struct rating* rating, const struct team* result) {
     int exit_code = O_SUCCESS;
 
     if (!rating || !result)
@@ -120,7 +120,7 @@ int rating_add(struct rating* rating, const struct team_result* result) {
     else if (!rating->buffer && rating->buffer_size != 0)
         exit_code = O_DAMAGED_DATA;
     else if (rating->size >= rating->buffer_size)
-        exit_code = grow_rating_buffer(rating);
+        exit_code = rating_grow_buffer(rating);
 
     if (exit_code == O_SUCCESS) {
         size_t name_buffer_size = strlen(result->name) + 1;
@@ -139,22 +139,22 @@ int rating_add(struct rating* rating, const struct team_result* result) {
 }
 
 int rating_pick_best_of(const struct rating* rating,
-                        struct team_result* best_results, unsigned int qty) {
+                        struct team* best_results, unsigned int qty) {
     int exit_code = O_SUCCESS;
-    struct team_result* heap = NULL;
+    struct team* heap = NULL;
 
     if (!rating || !best_results)
         exit_code = O_UNEXPECTED_NULL_ARG;
     else if (!rating->buffer || rating->size < qty)
         exit_code = O_DAMAGED_DATA;
     else {
-        heap = (struct team_result*)malloc(rating->size *
-                                           sizeof(struct team_result));
+        heap = (struct team*)malloc(rating->size *
+                                           sizeof(struct team));
         if (!heap)
             exit_code = O_BAD_ALLOC;
         else {
             memcpy(heap, rating->buffer,
-                   rating->size * sizeof(struct team_result));
+                   rating->size * sizeof(struct team));
 
             exit_code = build_heap(heap, rating->size);
 
@@ -165,7 +165,7 @@ int rating_pick_best_of(const struct rating* rating,
 
     if (exit_code == O_SUCCESS) {
         unsigned int heap_size = rating->size;
-        struct team_result temp;
+        struct team temp;
 
         for (unsigned int idx = 0; exit_code == O_SUCCESS && idx < qty; ++idx) {
             temp = heap[0];
