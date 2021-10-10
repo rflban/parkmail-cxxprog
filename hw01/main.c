@@ -51,11 +51,12 @@ int main(void) {
             bytes_recieved = getline(buffers + i, buffers_size + i, stdin);
 
         if (bytes_recieved > 0) {
-            for (int i = 0; i < 4; ++i) {
+            for (int i = 0; buffers[i] && i < 4; ++i) {
                 buffers[i][strlen(buffers[i]) - 1] = '\0';
             }
 
             if (
+                buffers[0] && buffers[1] && buffers[2] && buffers[3] &&
                 isdigit_str(buffers[0]) &&
                 isdigit_str(buffers[2]) &&
                 isdigit_str(buffers[3])

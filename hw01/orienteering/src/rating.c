@@ -124,11 +124,12 @@ int rating_add(struct rating* rating, const struct team_result* result) {
         exit_code = grow_rating_buffer(rating);
 
     if (exit_code == O_SUCCESS) {
-        char* name_buffer = (char*)malloc(strlen(result->name) + 1);
+        size_t name_buffer_size = strlen(result->name) + 1;
+        char* name_buffer = (char*)malloc(name_buffer_size);
         if (!name_buffer)
             exit_code = O_BAD_ALLOC;
         else {
-            strcpy(name_buffer, result->name);
+            strncpy(name_buffer, result->name, name_buffer_size);
             rating->buffer[rating->size] = *result;
             rating->buffer[rating->size].name = name_buffer;
             rating->size += 1;
