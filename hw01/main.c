@@ -62,8 +62,8 @@ int main(void) {
     printf("Top %d teams:\n", top_size);
     for (unsigned int idx = 0; idx < top_size; ++idx) {
         printf(
-            "%d) Team #%d \"%s\" has achieved %d control "
-            "points in %d minutes %d seconds\n",
+            "%3d) Team #%03d \"%7s\" has achieved %3d control "
+            "points in %3d minutes %3d seconds\n",
             idx + 1,
             top_of_rating[idx].number,
             top_of_rating[idx].name,
