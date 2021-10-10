@@ -3,8 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "teamresult.h"
 #include "exitcodes.h"
+#include "teamresult.h"
 
 struct rating {
     struct team_result* buffer;
@@ -12,9 +12,8 @@ struct rating {
     unsigned int size;
 };
 
-static int sift_down(
-        struct team_result* heap, unsigned int size, unsigned int parent
-    ) {
+static int sift_down(struct team_result* heap, unsigned int size,
+                     unsigned int parent) {
     int exit_code = O_SUCCESS;
     char subtree_is_heap = 0;
     struct team_result temp;
@@ -23,15 +22,15 @@ static int sift_down(
         exit_code = O_UNEXPECTED_NULL_ARG;
     else
         while (!subtree_is_heap && ((parent << 1) + 1 < size)) {
-            unsigned int left  = (parent << 1) + 1;
+            unsigned int left = (parent << 1) + 1;
             unsigned int right = (parent << 1) + 2;
             unsigned int min_child = left;
 
-            if (right < size && team_result_cmp(heap + right, heap + left) > 0)
+            if (right < size && team_result_cmp(heap[right], heap[left]) > 0)
                 min_child = right;
 
             subtree_is_heap =
-                team_result_cmp(heap + parent, heap + min_child) >= 0;
+                team_result_cmp(heap[parent], heap[min_child]) >= 0;
 
             if (!subtree_is_heap) {
                 temp = heap[parent];
@@ -68,8 +67,8 @@ static int grow_rating_buffer(struct rating* rating) {
         if (new_size == 0)
             new_size = 1;
 
-        struct team_result* new_buffer = (struct team_result*)
-            realloc(rating->buffer, new_size * sizeof(rating->buffer[0]));
+        struct team_result* new_buffer = (struct team_result*)realloc(
+            rating->buffer, new_size * sizeof(rating->buffer[0]));
 
         if (!new_buffer)
             exit_code = O_BAD_ALLOC;
@@ -119,7 +118,7 @@ int rating_add(struct rating* rating, const struct team_result* result) {
     if (!rating || !result)
         exit_code = O_UNEXPECTED_NULL_ARG;
     else if (!rating->buffer && rating->buffer_size != 0)
-        exit_code = O_DAMAGED_DATA; 
+        exit_code = O_DAMAGED_DATA;
     else if (rating->size >= rating->buffer_size)
         exit_code = grow_rating_buffer(rating);
 
@@ -139,28 +138,23 @@ int rating_add(struct rating* rating, const struct team_result* result) {
     return exit_code;
 }
 
-int rating_pick_best_of(
-        const struct rating* rating,
-        struct team_result*  best_results,
-        unsigned int         qty
-    ) {
+int rating_pick_best_of(const struct rating* rating,
+                        struct team_result* best_results, unsigned int qty) {
     int exit_code = O_SUCCESS;
     struct team_result* heap = NULL;
 
     if (!rating || !best_results)
         exit_code = O_UNEXPECTED_NULL_ARG;
     else if (!rating->buffer || rating->size < qty)
-        exit_code = O_DAMAGED_DATA; 
+        exit_code = O_DAMAGED_DATA;
     else {
-        heap = (struct team_result*)
-            malloc(rating->size * sizeof(struct team_result));
+        heap = (struct team_result*)malloc(rating->size *
+                                           sizeof(struct team_result));
         if (!heap)
             exit_code = O_BAD_ALLOC;
         else {
-            memcpy(
-                heap, rating->buffer,
-                rating->size * sizeof(struct team_result)
-            );
+            memcpy(heap, rating->buffer,
+                   rating->size * sizeof(struct team_result));
 
             exit_code = build_heap(heap, rating->size);
 
@@ -173,9 +167,7 @@ int rating_pick_best_of(
         unsigned int heap_size = rating->size;
         struct team_result temp;
 
-        for (
-            unsigned int idx = 0; exit_code == O_SUCCESS && idx < qty; ++idx
-        ) {
+        for (unsigned int idx = 0; exit_code == O_SUCCESS && idx < qty; ++idx) {
             temp = heap[0];
             heap[0] = heap[rating->size - 1 - idx];
             heap[rating->size - 1 - idx] = temp;
@@ -185,7 +177,7 @@ int rating_pick_best_of(
         }
 
         if (exit_code == O_SUCCESS) {
-            for (unsigned int idx = 0; idx < qty; ++idx) 
+            for (unsigned int idx = 0; idx < qty; ++idx)
                 best_results[idx] = heap[rating->size - 1 - idx];
         }
 
