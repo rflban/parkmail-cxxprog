@@ -29,8 +29,7 @@ static int sift_down(struct team* heap, unsigned int size,
             if (right < size && team_cmp(heap[right], heap[left]) > 0)
                 min_child = right;
 
-            subtree_is_heap =
-                team_cmp(heap[parent], heap[min_child]) >= 0;
+            subtree_is_heap = team_cmp(heap[parent], heap[min_child]) >= 0;
 
             if (!subtree_is_heap) {
                 temp = heap[parent];
@@ -138,8 +137,8 @@ int rating_add(struct rating* rating, const struct team* result) {
     return exit_code;
 }
 
-int rating_pick_best_of(const struct rating* rating,
-                        struct team* best_results, unsigned int qty) {
+int rating_pick_best_of(const struct rating* rating, struct team* best_results,
+                        unsigned int qty) {
     int exit_code = O_SUCCESS;
     struct team* heap = NULL;
 
@@ -148,13 +147,11 @@ int rating_pick_best_of(const struct rating* rating,
     else if (!rating->buffer || rating->size < qty)
         exit_code = O_DAMAGED_DATA;
     else {
-        heap = (struct team*)malloc(rating->size *
-                                           sizeof(struct team));
+        heap = (struct team*)malloc(rating->size * sizeof(struct team));
         if (!heap)
             exit_code = O_BAD_ALLOC;
         else {
-            memcpy(heap, rating->buffer,
-                   rating->size * sizeof(struct team));
+            memcpy(heap, rating->buffer, rating->size * sizeof(struct team));
 
             exit_code = build_heap(heap, rating->size);
 

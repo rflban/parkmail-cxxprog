@@ -4,9 +4,9 @@
 #include <string.h>
 
 #include "exitcodes.h"
+#include "io.h"
 #include "rating.h"
 #include "team.h"
-#include "io.h"
 
 #define TOP_SIZE 10
 
@@ -42,8 +42,7 @@ int main(void) {
     if (exit_code == O_SUCCESS) {
         top_size = (rating_len > TOP_SIZE) ? TOP_SIZE : rating_len;
 
-        top_teams =
-            (struct team*)malloc(sizeof(struct team) * top_size);
+        top_teams = (struct team*)malloc(sizeof(struct team) * top_size);
         if (!top_teams) {
             exit_code = O_BAD_ALLOC;
         }

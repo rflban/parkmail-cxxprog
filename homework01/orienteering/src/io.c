@@ -1,13 +1,13 @@
 #include "io.h"
 
 #include <ctype.h>
-#include <string.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-#include "team.h"
-#include "rating.h"
 #include "exitcodes.h"
+#include "rating.h"
+#include "team.h"
 
 static inline char is_digit(const char* begin, const char* end) {
     while (begin < end)
@@ -16,8 +16,8 @@ static inline char is_digit(const char* begin, const char* end) {
     return 1;
 }
 
-int uint_read(unsigned int* value, FILE* stream,
-              char**buffer, size_t* buffer_size) {
+int uint_read(unsigned int* value, FILE* stream, char** buffer,
+              size_t* buffer_size) {
     int exit_code = O_SUCCESS;
 
     if (!value || !buffer || !buffer_size)
@@ -40,13 +40,13 @@ int uint_read(unsigned int* value, FILE* stream,
     return exit_code;
 }
 
-int team_read(struct team* team, FILE* stream,
-              char** buffer, size_t* buffer_size) {
+int team_read(struct team* team, FILE* stream, char** buffer,
+              size_t* buffer_size) {
     int exit_code = O_SUCCESS;
     unsigned int number = 0;
     unsigned int route_time = 0;
     unsigned int control_point_qty = 0;
-    char *name_buffer = NULL;
+    char* name_buffer = NULL;
 
     if (!team || !stream || !buffer || !buffer_size)
         exit_code = O_UNEXPECTED_NULL_ARG;
@@ -88,8 +88,7 @@ int team_read(struct team* team, FILE* stream,
         team->name = name_buffer;
         team->route_time_secs = route_time;
         team->control_point_qty = control_point_qty;
-    }
-    else
+    } else
         free(name_buffer);
 
     return exit_code;
@@ -98,7 +97,7 @@ int team_read(struct team* team, FILE* stream,
 int rating_read(struct rating* rating, FILE* stream) {
     int exit_code = O_SUCCESS;
     int test_char = 0;
-    struct team team = {};
+    struct team team = {0};
     char* buffer = NULL;
     size_t buffer_size = 0;
 
