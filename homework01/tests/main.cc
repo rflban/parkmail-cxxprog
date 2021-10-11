@@ -6,6 +6,7 @@
 extern "C" {
 #include "rating.h"
 #include "team.h"
+#include "io.h"
 }
 
 #define RATING_SIZE 10
@@ -62,40 +63,87 @@ TEST(RATING_SIZE_TEST, ASSERT_SIZE_1) {
     rating_destroy(&rating);
 }
 
-TEST(RATING_PEAKBESTOF_TEST, ASSERT_FIRST_5_OF_10) {
-    char name[] = " ";
-    std::vector<team> results;
+TEST(RATING_PEAKBESTOF_TEST, ASSERT_PICK) {
+    char name[] = "name";
+    std::vector<team> teams;
 
-    for (int i = 0; i < RATING_SIZE; ++i) {
-        name[0] = 'A' + i;
-        results.push_back(
+    for (size_t i = 0; i < RATING_SIZE; ++i) {
+        teams.push_back(
             {.name = name, .control_point_qty = (unsigned)rand()}
         );
     }
 
     struct rating* rating = rating_create();
-    struct team* top =
+    struct team* top_teams =
         (struct team*)malloc(PICK_SIZE * sizeof(struct team));
 
-    for (const auto& res: results)
-        rating_add(rating, &res);
+    for (const auto& team: teams)
+        rating_add(rating, &team);
 
-    rating_pick_best_of(rating, top, PICK_SIZE);
+    rating_pick_best_of(rating, top_teams, PICK_SIZE);
     std::sort(
-        results.begin(), results.end(),
+        teams.begin(), teams.end(),
         [](const struct team& a, const struct team& b) {
             return team_cmp(a, b) > 0;
         }
     );
 
     for (int i = 0; i < PICK_SIZE; ++i) {
-        EXPECT_EQ(top[i].control_point_qty, results[i].control_point_qty);
-        EXPECT_EQ(top[i].route_time_secs, results[i].route_time_secs);
-        EXPECT_EQ(top[i].number, results[i].number);
-        EXPECT_EQ(strcmp(top[i].name, results[i].name), 0);
+        EXPECT_EQ(top_teams[i].control_point_qty, teams[i].control_point_qty);
+        EXPECT_EQ(top_teams[i].route_time_secs, teams[i].route_time_secs);
+        EXPECT_EQ(top_teams[i].number, teams[i].number);
+        EXPECT_EQ(strcmp(top_teams[i].name, teams[i].name), 0);
     }
 
-    free(top);
+    free(top_teams);
+    rating_destroy(&rating);
+}
+
+TEST(RATING_READ_TEST, ASSERT_FILL_FROM_FILE) {
+    char name[] = "name";
+    std::vector<team> teams;
+
+    for (size_t i = 0; i < RATING_SIZE; ++i) {
+        teams.push_back(
+            {.name = name, .control_point_qty = (unsigned)i}
+        );
+    }
+
+    FILE* stream = fopen("RATING_READ_TEST_ASSERT_FILL_FROM_FILE.txt", "w");
+    for (const auto& res: teams)
+        fprintf(stream, "%d\n%s\n%d\n%d\n", 
+                res.number, res.name,
+                res.route_time_secs, res.control_point_qty);
+    fclose(stream);
+
+
+    struct rating* rating = rating_create();
+    struct team* top_teams =
+        (struct team*)malloc(RATING_SIZE * sizeof(struct team));
+
+    stream = fopen("RATING_READ_TEST_ASSERT_FILL_FROM_FILE.txt", "r");
+    rating_read(rating, stream);
+    fclose(stream);
+
+    unsigned int rating_len;
+    rating_size(rating, &rating_len);
+
+    rating_pick_best_of(rating, top_teams, RATING_SIZE);
+    std::sort(
+        teams.begin(), teams.end(),
+        [](const struct team& a, const struct team& b) {
+            return team_cmp(a, b) > 0;
+        }
+    );
+
+    for (int i = 0; i < RATING_SIZE; ++i) {
+        EXPECT_EQ(top_teams[i].control_point_qty, teams[i].control_point_qty);
+        EXPECT_EQ(top_teams[i].route_time_secs, teams[i].route_time_secs);
+        EXPECT_EQ(top_teams[i].number, teams[i].number);
+        EXPECT_EQ(strcmp(top_teams[i].name, teams[i].name), 0);
+    }
+
+    free(top_teams);
     rating_destroy(&rating);
 }
 

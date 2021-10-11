@@ -95,7 +95,7 @@ struct rating* rating_create() {
 
 void rating_destroy(struct rating** rating) {
     if (rating) {
-        for (unsigned int idx = 0; idx < (*rating)->size; ++idx)
+        for (size_t idx = 0; idx < (*rating)->size; ++idx)
             free((*rating)->buffer[idx].name);
 
         free((*rating)->buffer);
@@ -167,7 +167,7 @@ int rating_pick_best_of(const struct rating* rating,
         unsigned int heap_size = rating->size;
         struct team temp;
 
-        for (unsigned int idx = 0; exit_code == O_SUCCESS && idx < qty; ++idx) {
+        for (size_t idx = 0; exit_code == O_SUCCESS && idx < qty; ++idx) {
             temp = heap[0];
             heap[0] = heap[rating->size - 1 - idx];
             heap[rating->size - 1 - idx] = temp;
@@ -177,7 +177,7 @@ int rating_pick_best_of(const struct rating* rating,
         }
 
         if (exit_code == O_SUCCESS) {
-            for (unsigned int idx = 0; idx < qty; ++idx)
+            for (size_t idx = 0; idx < qty; ++idx)
                 best_results[idx] = heap[rating->size - 1 - idx];
         }
 
