@@ -32,7 +32,6 @@ int uint_read(unsigned int* value, FILE* stream, char** buffer,
         if (is_digit(*buffer, parse_end))
             *value = atoi(*buffer);
         else {
-            fprintf(stderr, "*%s*", *buffer);
             exit_code = O_DAMAGED_DATA;
         }
     }
