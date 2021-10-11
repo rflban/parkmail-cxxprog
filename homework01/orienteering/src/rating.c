@@ -4,7 +4,7 @@
 #include <string.h>
 
 #include "exitcodes.h"
-#include "teamresult.h"
+#include "team.h"
 
 struct rating {
     struct team* buffer;

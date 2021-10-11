@@ -5,16 +5,10 @@
 
 #include "exitcodes.h"
 #include "rating.h"
-#include "teamresult.h"
+#include "team.h"
+#include "io.h"
 
 #define TOP_SIZE 10
-
-static inline char isdigit_str(const char* str) {
-    while (*str)
-        if (!isdigit(*(str++)))
-            return 0;
-    return 1;
-}
 
 static void print_if_error(int exit_code) {
     switch (exit_code) {
@@ -32,39 +26,12 @@ static void print_if_error(int exit_code) {
 
 int main(void) {
     int exit_code = O_SUCCESS;
-    char* buffers[4] = {};
-    size_t buffers_size[4] = {};
-    ssize_t bytes_recieved = 1;
-    struct team received_team;
 
     struct rating* rating = rating_create();
     if (!rating)
         exit_code = O_BAD_ALLOC;
-
-    while (!feof(stdin) && bytes_recieved > 0 && exit_code == O_SUCCESS) {
-        int i = 0;
-        for (; i < 4 && !feof(stdin) && bytes_recieved > 0; ++i)
-            bytes_recieved = getline(buffers + i, buffers_size + i, stdin);
-
-        if (bytes_recieved > 0) {
-            for (int i = 0; buffers[i] && i < 4; ++i) {
-                buffers[i][strlen(buffers[i]) - 1] = '\0';
-            }
-
-            if (buffers[0] && buffers[1] && buffers[2] && buffers[3] &&
-                isdigit_str(buffers[0]) && isdigit_str(buffers[2]) &&
-                isdigit_str(buffers[3])) {
-                received_team.number = atoi(buffers[0]);
-                received_team.name = buffers[1];
-                received_team.route_time_secs = atoi(buffers[2]);
-                received_team.control_point_qty = atoi(buffers[3]);
-                exit_code = rating_add(rating, &received_team);
-            }
-        } else if (i != 1)
-            exit_code = O_DAMAGED_DATA;
-    }
-
-    for (int i = 0; i < 4; ++i) free(buffers[i]);
+    else
+        exit_code = rating_read(rating, stdin);
 
     unsigned int rating_len;
     if (exit_code == O_SUCCESS)

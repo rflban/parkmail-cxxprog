@@ -1,4 +1,4 @@
-#include "teamresult.h"
+#include "team.h"
 
 int team_cmp(struct team a, struct team b) {
     int cmp = a.control_point_qty - b.control_point_qty;

@@ -5,7 +5,7 @@
 
 extern "C" {
 #include "rating.h"
-#include "teamresult.h"
+#include "team.h"
 }
 
 #define RATING_SIZE 10
