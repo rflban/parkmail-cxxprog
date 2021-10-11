@@ -8,7 +8,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage")
 set(CMAKE_C_FLAGS "-g3 --coverage")
 
 add_subdirectory(orienteering)
-add_executable(top10 main.c)
+add_executable(top10 cmd/main.c)
 
 target_include_directories(top10 PRIVATE orienteering/inc/)
 target_link_libraries(top10 orienteering)
