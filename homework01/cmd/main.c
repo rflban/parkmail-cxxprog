@@ -9,6 +9,7 @@
 #include "team.h"
 
 #define TOP_SIZE 10
+#define SECS_PER_MIN 60
 
 static void print_error(int exit_code) {
     switch (exit_code) {
@@ -72,8 +73,8 @@ int main(void) {
             "points in %3d minutes %3d seconds\n",
             idx + 1, top_teams[idx].number, top_teams[idx].name,
             top_teams[idx].control_point_qty,
-            top_teams[idx].route_time_secs / 60,
-            top_teams[idx].route_time_secs % 60);
+            top_teams[idx].route_time_secs / SECS_PER_MIN,
+            top_teams[idx].route_time_secs % SECS_PER_MIN);
     }
     printf("\n");
 
