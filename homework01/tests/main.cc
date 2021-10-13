@@ -43,22 +43,22 @@ TEST(TEAMRESULT_CMP_TEST, ASSERT_LT_TIME) {
 }
 
 TEST(RATING_SIZE_TEST, ASSERT_EMPTY) {
-    unsigned int size = -1;
+    size_t size = -1;
     struct rating* rating = rating_create();
 
-    rating_size(rating, &size);
+    rating_get_size(rating, &size);
     EXPECT_EQ(size, 0);
     rating_destroy(&rating);
 }
 
 TEST(RATING_SIZE_TEST, ASSERT_SIZE_1) {
-    unsigned int size = -1;
+    size_t size = -1;
     char name[] = "name";
     struct rating* rating = rating_create();
     struct team team = {.name = name};
     rating_add(rating, &team);
 
-    rating_size(rating, &size);
+    rating_get_size(rating, &size);
     EXPECT_EQ(size, 1);
     rating_destroy(&rating);
 }
@@ -124,9 +124,6 @@ TEST(RATING_READ_TEST, ASSERT_FILL_FROM_FILE) {
     stream = fopen("RATING_READ_TEST_ASSERT_FILL_FROM_FILE.txt", "r");
     rating_read(rating, stream);
     fclose(stream);
-
-    unsigned int rating_len;
-    rating_size(rating, &rating_len);
 
     rating_pick_best_of(rating, top_teams, RATING_SIZE);
     std::sort(

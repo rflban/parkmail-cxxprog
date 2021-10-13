@@ -10,7 +10,7 @@
 
 #define TOP_SIZE 10
 
-static void print_if_error(int exit_code) {
+static void print_error(int exit_code) {
     switch (exit_code) {
         case O_UNEXPECTED_NULL_ARG:
             fprintf(stderr, "unexpected NULL argument have been passed\n");
@@ -28,46 +28,57 @@ int main(void) {
     int exit_code = O_SUCCESS;
 
     struct rating* rating = rating_create();
-    if (!rating)
-        exit_code = O_BAD_ALLOC;
-    else
-        exit_code = rating_read(rating, stdin);
+    if (!rating) {
+        print_error(O_BAD_ALLOC);
+        return 0;
+    }
 
-    unsigned int rating_len;
-    if (exit_code == O_SUCCESS)
-        exit_code = rating_size(rating, &rating_len);
+    if ((exit_code = rating_read(rating, stdin)) != O_SUCCESS) {
+        print_error(exit_code);
+        rating_destroy(&rating);
+        return 0;
+    }
 
-    unsigned int top_size = 0;
+    size_t rating_size;
+    size_t top_size = 0;
     struct team* top_teams = NULL;
-    if (exit_code == O_SUCCESS) {
-        top_size = (rating_len > TOP_SIZE) ? TOP_SIZE : rating_len;
 
-        top_teams = (struct team*)malloc(sizeof(struct team) * top_size);
-        if (!top_teams) {
-            exit_code = O_BAD_ALLOC;
-        }
+    if ((exit_code = rating_get_size(rating, &rating_size)) != O_SUCCESS) {
+        print_error(exit_code);
+        rating_destroy(&rating);
+        return 0;
     }
 
-    if (exit_code == O_SUCCESS)
-        exit_code = rating_pick_best_of(rating, top_teams, top_size);
-
-    if (exit_code == O_SUCCESS) {
-        printf("Top %d teams:\n", top_size);
-        for (size_t idx = 0; idx < top_size; ++idx) {
-            printf(
-                "%3lu) Team #%-3d \"%7s\" has achieved %3d control "
-                "points in %3d minutes %3d seconds\n",
-                idx + 1, top_teams[idx].number, top_teams[idx].name,
-                top_teams[idx].control_point_qty,
-                top_teams[idx].route_time_secs / 60,
-                top_teams[idx].route_time_secs % 60);
-        }
-        printf("\n");
+    top_size = (rating_size > TOP_SIZE) ? TOP_SIZE : rating_size;
+    top_teams = (struct team*)malloc(sizeof(struct team) * top_size);
+    if (!top_teams) {
+        print_error(O_BAD_ALLOC);
+        rating_destroy(&rating);
+        return 0;
     }
+
+    exit_code = rating_pick_best_of(rating, top_teams, top_size);
+    if (exit_code != O_SUCCESS) {
+        print_error(exit_code);
+        rating_destroy(&rating);
+        free(top_teams);
+        return 0;
+    }
+
+    printf("Top %lu teams:\n", top_size);
+    for (size_t idx = 0; idx < top_size; ++idx) {
+        printf(
+            "%3lu) Team #%-3d \"%7s\" has achieved %3d control "
+            "points in %3d minutes %3d seconds\n",
+            idx + 1, top_teams[idx].number, top_teams[idx].name,
+            top_teams[idx].control_point_qty,
+            top_teams[idx].route_time_secs / 60,
+            top_teams[idx].route_time_secs % 60);
+    }
+    printf("\n");
 
     free(top_teams);
     rating_destroy(&rating);
 
-    print_if_error(exit_code);
-    return exit_code;
+    return 0;
 }
