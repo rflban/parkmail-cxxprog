@@ -112,7 +112,7 @@ int rating_read(struct rating* rating, FILE* stream) {
     struct team team = {0};
 
     if (!rating || !stream)
-        exit_code = O_UNEXPECTED_NULL_ARG;
+        return O_UNEXPECTED_NULL_ARG;
 
     while (exit_code == O_SUCCESS && !feof(stream)) {
         exit_code = team_read(&team, stream, &buffer, &buffer_size);
