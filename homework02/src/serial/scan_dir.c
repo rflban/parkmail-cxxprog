@@ -87,6 +87,7 @@ int scan_dir(const char* dirpath, const char* token,
             }
         }
     }
+    closedir(dir);
 
     if (best_matches.size > 0) {
         memcpy(matches, best_matches.buffer,
