@@ -5,12 +5,17 @@
 
 #include "collections/string.h"
 
-typedef struct token_matches {
+typedef struct match {
     string_t filename;
     size_t count;
-} token_matches_t;
+} match_t;
 
 int scan_dir(const char* dirpath, const char* token,
-            struct token_matches* matches, size_t* best_of);
+             match_t* matches, size_t* best_of);
+
+static int cmp_matches(const void* a, const void* b) {
+    return ((const match_t*)a)->count - ((const match_t*)b)->count;
+}
+
 
 #endif  // HW02_MATCHES_SCANDIR_H_
