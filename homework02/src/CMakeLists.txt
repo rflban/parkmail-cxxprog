@@ -1,12 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(matches)
-
 add_subdirectory(serial)
 add_subdirectory(parallel)
 
-add_compile_options(-g3)
-#add_library(matches SHARED ${SERIAL_SOURCES})
-add_library(matches SHARED ${PARALLEL_SOURCES})
-
-target_link_libraries(matches PUBLIC collections)
+set(SOURCES ${SERIAL_SOURCES} PARENT_SCOPE)
+#set(SOURCES ${PARALLEL_SOURCES} PARENT_SCOPE)

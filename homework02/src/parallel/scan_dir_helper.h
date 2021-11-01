@@ -20,8 +20,8 @@
 #include "collections/string.h"
 #include "collections/vector.h"
 
-ENABLE_VECTOR_OF(string_t);
-ENABLE_VECTOR_OF(match_t);
+ENABLE_VECTOR_OF(string_t)
+ENABLE_VECTOR_OF(match_t)
 
 struct runner_args {
     size_t start;

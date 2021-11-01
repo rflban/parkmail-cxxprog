@@ -9,7 +9,7 @@
 #include "collections/string.h"
 #include "collections/vector.h"
 
-ENABLE_VECTOR_OF(match_t);
+ENABLE_VECTOR_OF(match_t)
 
 static int scan_file(const char* dent_name, const char* token,
                      vector_of_match_t* best_matches) {
@@ -80,8 +80,6 @@ int scan_dir(const char* dirpath, const char* token,
         return MATCHES_OPENDIR_ERROR;
     }
 
-    FILE* stream = NULL;
-    size_t token_count = 0;
     struct dirent* dent = NULL;
     while (rc == MATCHES_SUCCESS && (dent = readdir(dir))) {
         if (strcmp(dent->d_name, ".") == 0 ||

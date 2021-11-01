@@ -8,8 +8,8 @@ extern "C" {
 const char SAMPLE_CHAR_VECTOR[] = {4, 5, 2, 1, 8, 3, 9, 7, 0, 6};
 const int SAMPLE_INT_VECTOR[] = {4, 5, 2, 1, 8, 3, 9, 7, 0, 6};
 
-ENABLE_VECTOR_OF(char);
-ENABLE_VECTOR_OF(int);
+ENABLE_VECTOR_OF(char)
+ENABLE_VECTOR_OF(int)
 
 TEST(VECTOR_OF_CHAR_INIT, NULL_ARG) {
     EXPECT_EQ(vector_of_char_init(NULL), COLLECTIONS_NULLARG_ERROR);

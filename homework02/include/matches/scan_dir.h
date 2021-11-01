@@ -17,7 +17,7 @@ typedef struct match {
 int scan_dir(const char* dirpath, const char* token,
              vector_of_match_t* matches, size_t* best_of);
 
-static int match_cmp(const void* a, const void* b) {
+static inline int match_cmp(const void* a, const void* b) {
     assert(a && b && "NULL args are not allowed");
 
     int diff = ((const match_t*)b)->count - ((const match_t*)a)->count;
