@@ -5,6 +5,7 @@ project(matches)
 add_subdirectory(serial)
 add_subdirectory(parallel)
 
+add_compile_options(-g3)
 #add_library(matches SHARED ${SERIAL_SOURCES})
 add_library(matches SHARED ${PARALLEL_SOURCES})
 

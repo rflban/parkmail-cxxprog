@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.16)
 
 project(hw02)
 
+add_compile_options(-fno-omit-frame-pointer -fsanitize=address)
+add_link_options(-fsanitize=address)
 add_subdirectory(lib)
 add_subdirectory(src)
 add_subdirectory(examples)

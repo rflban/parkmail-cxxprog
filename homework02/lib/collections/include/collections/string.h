@@ -2,7 +2,7 @@
 #define PARKMAIL_HW_COLLECTIONS_STRING_H_
 
 typedef struct string {
-    char* buffer;
+    char* data;
 } string_t;
 
 int string_init(string_t* self, const char* str);

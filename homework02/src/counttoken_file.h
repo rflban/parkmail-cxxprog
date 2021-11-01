@@ -7,12 +7,12 @@
 #include <stdlib.h>
 
 #include "counttoken.h"
-#include "matches/exitcodes.h"
+#include "matches/returncodes.h"
 
 static int counttoken_file(FILE* stream, const char* token, size_t* count) {
     assert(stream && token && count);
 
-    int exitcode = EXIT_SUCCESS_;
+    int exitcode = MATCHES_SUCCESS;
     char test_char = 0;
     char* buffer = NULL;
     size_t common_len = 0;
@@ -20,12 +20,12 @@ static int counttoken_file(FILE* stream, const char* token, size_t* count) {
 
     buffer = (char*)malloc(sizeof(char) * BUFFER_SIZE);
     if (!buffer) {
-        return EXIT_BAD_ALLOC_;
+        return COLLECTIONS_ALLOC_ERROR;
     }
 
     while (!feof(stream)) {
         if (fgets(buffer, BUFFER_SIZE, stream) == NULL) {
-            exitcode = EXIT_INPUT_ERROR_;
+            exitcode = MATCHES_INPUT_ERROR;
             break;
         }
 
@@ -39,7 +39,7 @@ static int counttoken_file(FILE* stream, const char* token, size_t* count) {
 
     free(buffer);
 
-    if (EXIT_SUCCESS_ == exitcode) {
+    if (MATCHES_SUCCESS == exitcode) {
         *count = matches_count;
     }
 

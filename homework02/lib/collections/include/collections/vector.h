@@ -3,7 +3,7 @@
 
 #include <stddef.h>
 
-#include "collections/exitcodes.h"
+#include "collections/returncodes.h"
 #include "collections/utils.h"
 
 #define VECTOR_GROW_RATIO 2
@@ -20,36 +20,39 @@
 
 #define ENABLE_VECTOR_OF(T)                                                     \
                                                                                 \
-typedef struct {                                                                \
-    T* buffer;                                                                  \
+typedef struct VECTOR_TYPE(T) {                                                 \
+    T* data;                                                                    \
     size_t size;                                                                \
     size_t capacity;                                                            \
 } VECTOR_TYPE(T);                                                               \
                                                                                 \
 static int XCONCAT(VECTOR_FUN_PREFIX(T), _init)(VECTOR_TYPE(T)* self) {         \
     if (!self) {                                                                \
-        return PHWC_EXIT_NULL_ARG;                                              \
+        return COLLECTIONS_NULLARG_ERROR;                                       \
     }                                                                           \
                                                                                 \
     self->size = 0;                                                             \
-    self->buffer = NULL;                                                        \
+    self->data = NULL;                                                          \
     self->capacity = 0;                                                         \
                                                                                 \
-    return PHWC_EXIT_SUCCESS;                                                   \
+    return COLLECTIONS_SUCCESS;                                                 \
 }                                                                               \
                                                                                 \
 static int XCONCAT(VECTOR_FUN_PREFIX(T), _deinit)(VECTOR_TYPE(T)* self) {       \
     if (!self) {                                                                \
-        return PHWC_EXIT_NULL_ARG;                                              \
+        return COLLECTIONS_NULLARG_ERROR;                                       \
     }                                                                           \
                                                                                 \
-    free(self->buffer);                                                         \
-    return PHWC_EXIT_SUCCESS;                                                   \
+    free(self->data);                                                           \
+    self->size = 0;                                                             \
+    self->data = NULL;                                                          \
+    self->capacity = 0;                                                         \
+    return COLLECTIONS_SUCCESS;                                                 \
 }                                                                               \
                                                                                 \
 static int XCONCAT(VECTOR_FUN_PREFIX(T), _grow)(VECTOR_TYPE(T)* self) {         \
     if (!self) {                                                                \
-        return PHWC_EXIT_NULL_ARG;                                              \
+        return COLLECTIONS_NULLARG_ERROR;                                       \
     }                                                                           \
                                                                                 \
     size_t new_capacity = self->capacity;                                       \
@@ -61,32 +64,32 @@ static int XCONCAT(VECTOR_FUN_PREFIX(T), _grow)(VECTOR_TYPE(T)* self) {         
     }                                                                           \
                                                                                 \
     T* new_buffer = (T*)realloc(                                                \
-            self->buffer,                                                       \
+            self->data,                                                         \
             new_capacity * sizeof(T));                                          \
     if (!new_buffer) {                                                          \
-        return PHWC_EXIT_BAD_ALLOC;                                             \
+        return COLLECTIONS_ALLOC_ERROR;                                         \
     }                                                                           \
                                                                                 \
-    self->buffer = new_buffer;                                                  \
+    self->data = new_buffer;                                                    \
     self->capacity = new_capacity;                                              \
-    return PHWC_EXIT_SUCCESS;                                                   \
+    return COLLECTIONS_SUCCESS;                                                 \
 }                                                                               \
                                                                                 \
 static int XCONCAT(VECTOR_FUN_PREFIX(T), _add)(VECTOR_TYPE(T)* self, T val) {   \
     if (!self) {                                                                \
-        return PHWC_EXIT_NULL_ARG;                                              \
+        return COLLECTIONS_NULLARG_ERROR;                                       \
     }                                                                           \
                                                                                 \
-    int exitcode = PHWC_EXIT_SUCCESS;                                           \
+    int rc = COLLECTIONS_SUCCESS;                                               \
                                                                                 \
     if (self->size >= self->capacity) {                                         \
-        exitcode = XCONCAT(VECTOR_FUN_PREFIX(T), _grow)(self);                  \
+        rc = XCONCAT(VECTOR_FUN_PREFIX(T), _grow)(self);                        \
     }                                                                           \
-    if (exitcode == PHWC_EXIT_SUCCESS) {                                        \
-        self->buffer[self->size++] = val;                                       \
+    if (rc == COLLECTIONS_SUCCESS) {                                            \
+        self->data[self->size++] = val;                                         \
     }                                                                           \
                                                                                 \
-    return exitcode;                                                            \
+    return rc;                                                                  \
 }                                                                               \
 
 #endif  // PARKMAIL_HW_COLLECTIONS_VECTOR_H_

@@ -3,38 +3,31 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "collections/exitcodes.h"
+#include "collections/returncodes.h"
 
 int string_init(string_t* self, const char* str) {
     if (!self || !str) {
-        return PHWC_EXIT_NULL_ARG;
+        return COLLECTIONS_NULLARG_ERROR;
     }
 
     size_t str_len = strlen(str);
     char* buffer = (char*)malloc(sizeof(char) * (str_len + 1));
     if (!buffer) {
-        return PHWC_EXIT_BAD_ALLOC;
+        return COLLECTIONS_ALLOC_ERROR;
     }
 
     memcpy(buffer, str, str_len + 1);
-    self->buffer = buffer;
+    self->data = buffer;
 
-    return PHWC_EXIT_SUCCESS;
+    return COLLECTIONS_SUCCESS;
 }
 
 int string_deinit(string_t* self) {
     if (!self) {
-        return PHWC_EXIT_NULL_ARG;
+        return COLLECTIONS_NULLARG_ERROR;
     }
 
-    free(self->buffer);
-    return PHWC_EXIT_SUCCESS;
-}
-
-const char* string_raw(string_t* self) {
-    if (!self) {
-        return NULL;
-    }
-
-    return self->buffer;
+    free(self->data);
+    self->data = NULL;
+    return COLLECTIONS_SUCCESS;
 }

@@ -14,12 +14,14 @@
 #include <sys/types.h>
 #include <sys/sysinfo.h>
 
+#include "util.h"
 #include "counttoken_file.h"
-#include "matches/exitcodes.h"
+#include "matches/returncodes.h"
 #include "collections/string.h"
 #include "collections/vector.h"
 
 ENABLE_VECTOR_OF(string_t);
+ENABLE_VECTOR_OF(match_t);
 
 struct runner_args {
     size_t start;
@@ -32,33 +34,38 @@ struct runner_args {
 static int perform_task(struct runner_args* args) {
     assert(args && "NULL argument is not allowed");
 
-    int exitcode = EXIT_SUCCESS_;
+    int rc = MATCHES_SUCCESS;
     FILE* stream = NULL;
 
     for (size_t idx = args->start; idx < args->end; ++idx) {
-        stream = fopen(args->matches[idx].filename.buffer, "r");
+        stream = fopen(args->matches[idx].filename.data, "r");
         if (!stream) {
-            return EXIT_INPUT_ERROR_;
+            rc = MATCHES_OPENFILE_ERROR;
+            break;
         }
 
-        exitcode = counttoken_file(stream, args->token,
-                                   &args->matches[idx].count);
+        rc = counttoken_file(stream, args->token,
+                             &args->matches[idx].count);
         fclose(stream);
-        if (exitcode != EXIT_SUCCESS_) {
-            return exitcode;
+        if (rc != MATCHES_SUCCESS) {
+            break;
         }
     }
+    for (size_t idx = 0; idx < args->files_qty; ++idx) {
+        string_t to_delete = args->matches[idx].filename;
+        string_deinit(&to_delete);
+    }
 
-    return EXIT_SUCCESS_;
+    return MATCHES_SUCCESS;
 }
 
-static pid_t run_fork(struct runner_args args, int* exitcode) {
-    assert(exitcode && "NULL argument is not allowed");
+static pid_t run_fork(struct runner_args args, int* rc) {
+    assert(rc && "NULL argument is not allowed");
 
     pid_t child = fork();
 
     if (child == 0) {
-        *exitcode = perform_task(&args);
+        *rc = perform_task(&args);
         exit(EXIT_SUCCESS);
     }
 
@@ -66,46 +73,49 @@ static pid_t run_fork(struct runner_args args, int* exitcode) {
 }
 
 static int collect_result(match_t* matches, size_t matches_qty,
-                          match_t* best_matches, size_t best_of,
-                          int* exitcodes, size_t nforks) {
-    assert(matches && best_matches && exitcodes && "NULL args are not allowed");
+                          vector_of_match_t* best_matches, size_t best_of,
+                          int* returncodes, size_t nforks) {
+    assert(matches && best_matches && returncodes &&
+           "NULL args are not allowed");
     assert(matches_qty >= best_of && "Size of best matches must "
                                      "be le than all matches quantity");
 
     for (int idx = 0; idx < nforks; ++idx) {
-        if (exitcodes[idx] != EXIT_SUCCESS_) {
-            return exitcodes[idx];
+        if (returncodes[idx] != MATCHES_SUCCESS) {
+            return returncodes[idx];
         }
     }
 
-    qsort(matches, matches_qty, sizeof(match_t), &cmp_matches);
-    memcpy(best_matches, matches, sizeof(match_t) * best_of);
+    sort(matches, matches_qty, sizeof(match_t), &match_cmp);
 
     for (size_t idx = 0; idx < best_of; ++idx) {
-        string_init(&best_matches[idx].filename, matches[idx].filename.buffer);
+        string_t filename;
+        string_init(&filename, matches[idx].filename.data);
+        match_t match = {.filename = filename, .count = matches[idx].count};
+        vector_of_match_t_add(best_matches, match);
     }
 
-    return EXIT_SUCCESS_;
+    return MATCHES_SUCCESS;
 }
 
 static int scan_files(match_t* all_matches, size_t files_qty,
                       const char* token,
-                      match_t* best_matches, size_t best_of) {
+                      vector_of_match_t* best_matches, size_t best_of) {
     assert(all_matches && token && best_matches &&
            "NULL args are not allowed");
     assert(files_qty >= best_of && "Size of best matches must "
                                    "be le than files quantity");
 
-    int exitcode = EXIT_SUCCESS_;
+    int rc = MATCHES_SUCCESS;
     size_t nprocs = (size_t)get_nprocs();
     size_t nforks = nprocs <= files_qty ? nprocs : files_qty;
 
-    int* exitcodes = (int*)mmap(NULL, nforks * sizeof(int),
+    int* returncodes = (int*)mmap(NULL, nforks * sizeof(int),
                                 PROT_READ | PROT_WRITE,
                                 MAP_SHARED | MAP_ANONYMOUS,
                                 -1, 0);
-    if (exitcodes == MAP_FAILED) {
-        return EXIT_MMAP_ERROR_;
+    if (returncodes == MAP_FAILED) {
+        return MATCHES_MMAP_ERROR;
     }
 
     size_t step = files_qty / nforks;
@@ -123,60 +133,74 @@ static int scan_files(match_t* all_matches, size_t files_qty,
         }
         runner_args.end = asigned_qty + step * (idx + 1);
 
-        run_fork(runner_args, exitcodes + idx);
+        run_fork(runner_args, returncodes + idx);
     }
 
     int status;
     pid_t child;
 
-    while ((child = wait(&status)) != -1 && errno != ECHILD)
-    {
+    while ((child = wait(&status)) != -1) {
         if (!WIFEXITED(status)) {
-            exitcode = EXIT_CHILD_FAILED_;
+            rc = MATCHES_CHILD_ERROR;
         }
     }
-    if (errno != ECHILD)
-    {
-        exitcode = EXIT_WAIT_ERROR_;
+    if (errno != ECHILD) {
+        rc = MATCHES_WAIT_ERROR;
     }
 
-    if (exitcode == EXIT_SUCCESS_) {
-        exitcode = collect_result(all_matches, files_qty, best_matches,
-                                  best_of, exitcodes, nforks);
+    if (rc == MATCHES_SUCCESS) {
+        rc = collect_result(all_matches, files_qty, best_matches,
+                            best_of, returncodes, nforks);
     }
 
-    munmap(exitcodes, nforks * sizeof(int));
+    munmap(returncodes, nforks * sizeof(int));
 
-    return exitcode;
+    return rc;
 }
 
-static int get_filenames(const char* dirpath, vector_of_string_t* filenames) {
-    assert(dirpath && filenames && "NULL args are not allowed");
+static int get_filenames(vector_of_string_t* filenames) {
+    assert(filenames && "NULL args are not allowed");
 
-    int exitcode = EXIT_SUCCESS_;
+    int rc = MATCHES_SUCCESS;
     DIR* dir = NULL;
     struct dirent* dent = NULL;
 
-    dir = opendir(dirpath);
+    dir = opendir(".");
     if (!dir) {
-        return EXIT_OPENDIR_ERROR_;
+        return MATCHES_OPENDIR_ERROR;
     }
 
-    while (exitcode == EXIT_SUCCESS_ && (dent = readdir(dir))) {
+    while (rc == MATCHES_SUCCESS && (dent = readdir(dir))) {
+        if (strcmp(dent->d_name, ".") == 0 ||
+            strcmp(dent->d_name, "..") == 0) {
+            continue;
+        }
+
+        if (!is_regular_file(dent->d_name)) {
+            rc = MATCHES_ISNOTFILE_ERROR;
+            break;
+        }
+
         string_t file;
-        exitcode = convert_exitcode_from_collections(
+        rc = convert_returncode_from_collections(
             string_init(&file, dent->d_name)
         );
 
-        if (exitcode == EXIT_SUCCESS_) {
-            exitcode = convert_exitcode_from_collections(
+        if (rc == MATCHES_SUCCESS) {
+            rc = convert_returncode_from_collections(
                 vector_of_string_t_add(filenames, file)
             );
         }
     }
     closedir(dir);
 
-    return exitcode;
+    if (MATCHES_SUCCESS != rc) {
+        for (size_t idx = 0; idx < filenames->size; ++idx) {
+            string_deinit(filenames->data + idx);
+        }
+    }
+
+    return rc;
 }
 
 #endif  // HW02_MATCHES_SCANDIR_HELPER_H_

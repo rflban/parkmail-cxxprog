@@ -3,127 +3,116 @@
 #include <dirent.h>
 #include <assert.h>
 
+#include "util.h"
 #include "counttoken_file.h"
-#include "matches/exitcodes.h"
+#include "matches/returncodes.h"
 #include "collections/string.h"
 #include "collections/vector.h"
 
 ENABLE_VECTOR_OF(match_t);
 
-static size_t find_worst(const vector_of_match_t* matches) {
-    assert(matches && "NULL argument is not allowed");
-    assert(matches->size && "Empty matches list is not allowed");
-
-    size_t idx;
-    size_t idx_of_min = 0;
-    match_t* raw_matches = matches->buffer;
-
-    for (idx = 1; idx < matches->size; ++idx) {
-        if (raw_matches[idx].count < raw_matches[idx_of_min].count) {
-            idx_of_min = idx;
-        }
-    }
-
-    return idx;
-}
-
-static int swap_with_worst(vector_of_match_t* best_matches,
-                           size_t token_count, const char* current_filename) {
-    assert(best_matches && current_filename && "NULL args are not allowed");
-
-    size_t swap_pos = find_worst(best_matches);
-
-    if (best_matches->buffer[swap_pos].count < token_count) {
-        string_t fname;
-        int exitcode = convert_exitcode_from_collections(
-            string_init(&fname, current_filename)
-        );
-        if (exitcode != EXIT_SUCCESS_) {
-            return exitcode;
-        }
-        match_t match = { fname, token_count };
-        string_deinit(&(best_matches->buffer[swap_pos].filename));
-        best_matches->buffer[swap_pos] = match;
-    }
-
-    return EXIT_SUCCESS_;
-}
-
 static int scan_file(const char* dent_name, const char* token,
-                     vector_of_match_t* best_matches,
-                     size_t* best_of) {
+                     vector_of_match_t* best_matches) {
     assert(dent_name && token && best_matches && "NULL args are not allowed");
 
-    int exitcode = EXIT_SUCCESS_;
+    int rc = MATCHES_SUCCESS;
     size_t token_count;
     FILE* stream = NULL;
 
     if (!(stream = fopen(dent_name, "r"))) {
-        return EXIT_OPENFILE_ERROR_;
+        return MATCHES_OPENFILE_ERROR;
     }
 
-    exitcode = counttoken_file(stream, token, &token_count);
+    rc = counttoken_file(stream, token, &token_count);
     fclose(stream);
-    if (exitcode != EXIT_SUCCESS_) {
-        return exitcode;
+    if (rc != MATCHES_SUCCESS) {
+        return rc;
     }
 
-    if (best_matches->size < *best_of) {
-        string_t fname;
-        exitcode = convert_exitcode_from_collections(
-            string_init(&fname, dent_name)
-        );
-        if (exitcode != EXIT_SUCCESS_) {
-            return exitcode;
-        }
-        match_t match = { fname, token_count };
+    string_t fname;
+    rc = convert_returncode_from_collections(
+        string_init(&fname, dent_name)
+    );
+    if (rc != MATCHES_SUCCESS) {
+        return rc;
+    }
+    match_t match = { fname, token_count };
 
-        exitcode = convert_exitcode_from_collections(
-            vector_of_match_t_add(best_matches, match)
-        );
-        if (exitcode != EXIT_SUCCESS_) {
-            string_deinit(&fname);
-            return exitcode;
-        }
-    } else {
-        exitcode = swap_with_worst(best_matches, token_count, dent_name);
+    rc = convert_returncode_from_collections(
+        vector_of_match_t_add(best_matches, match)
+    );
+    if (rc != MATCHES_SUCCESS) {
+        string_deinit(&fname);
+        return rc;
     }
 
-    return exitcode;
+    return rc;
 }
 
 int scan_dir(const char* dirpath, const char* token,
-             match_t* matches, size_t* best_of) {
-    if (!dirpath || !token || !matches || !best_of) {
-        return EXIT_UNEXPECTED_NULL_ARG_;
+             vector_of_match_t* best_matches, size_t* best_of) {
+    if (!dirpath || !token || !best_matches || !best_of) {
+        return MATCHES_NULLARG_ERROR;
     }
 
-    int exitcode = EXIT_SUCCESS_;
+    int rc = MATCHES_SUCCESS;
+    vector_of_match_t all_matches;
+    rc = convert_returncode_from_collections(
+        vector_of_match_t_init(&all_matches)
+    );
+    if (rc != MATCHES_SUCCESS) {
+        return rc;
+    }
+
+    char init_dirpath[PATH_MAX] = "";
+    if (!getcwd(init_dirpath, sizeof(init_dirpath))) {
+        vector_of_match_t_deinit(&all_matches);
+        return MATCHES_OPENDIR_ERROR;
+    }
+    chdir(dirpath);
+
     DIR* dir = NULL;
 
-    dir = opendir(dirpath);
+    dir = opendir(".");
     if (!dir) {
-        return EXIT_OPENDIR_ERROR_;
+        vector_of_match_t_deinit(&all_matches);
+        chdir(init_dirpath);
+        return MATCHES_OPENDIR_ERROR;
     }
-
-    vector_of_match_t best_matches;
-    vector_of_match_t_init(&best_matches);
 
     FILE* stream = NULL;
     size_t token_count = 0;
     struct dirent* dent = NULL;
-    while (exitcode == EXIT_SUCCESS_ && (dent = readdir(dir))) {
-        exitcode = scan_file(dent->d_name, token, &best_matches, best_of);
+    while (rc == MATCHES_SUCCESS && (dent = readdir(dir))) {
+        if (strcmp(dent->d_name, ".") == 0 ||
+            strcmp(dent->d_name, "..") == 0) {
+            continue;
+        }
+
+        if (!is_regular_file(dent->d_name)) {
+            rc = MATCHES_ISNOTFILE_ERROR;
+        } else {
+            rc = scan_file(dent->d_name, token, &all_matches);
+        }
     }
     closedir(dir);
 
-    if (best_matches.size > 0) {
-        memcpy(matches, best_matches.buffer,
-               sizeof(match_t) * best_matches.size);
-        *best_of = best_matches.size;
-        qsort(matches, *best_of, sizeof(match_t), &cmp_matches);
+    if (rc == MATCHES_SUCCESS && all_matches.size > 0) {
+        sort(all_matches.data, all_matches.size, sizeof(match_t), &match_cmp);
+        if (all_matches.size < *best_of) {
+            *best_of = all_matches.size;
+        }
+        size_t idx;
+        for (idx = 0; idx < *best_of; ++idx) {
+            vector_of_match_t_add(best_matches, all_matches.data[idx]);
+        }
+        for (; idx < all_matches.size; ++idx) {
+            string_deinit(&all_matches.data[idx].filename);
+        }
     }
 
-    vector_of_match_t_deinit(&best_matches);
-    return exitcode;
+    chdir(init_dirpath);
+    vector_of_match_t_deinit(&all_matches);
+
+    return rc;
 }
