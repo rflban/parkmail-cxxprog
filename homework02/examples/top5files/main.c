@@ -52,7 +52,7 @@ void print_usage(const char* pname) {
 
 void print_matches_err(int rc) {
     switch(rc) {
-        case EXIT_SUCCESS:
+        case MATCHES_SUCCESS:
             break;
         case MATCHES_ALLOC_ERROR:
             perror("MATCHES: Internal memory allocation error");
