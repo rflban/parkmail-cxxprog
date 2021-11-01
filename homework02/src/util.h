@@ -9,6 +9,8 @@
 
 static int is_regular_file(const char *path)
 {
+    assert(path && "NULL arg is not allowed");
+
     struct stat statbuf;
     stat(path, &statbuf);
     if (S_ISREG(statbuf.st_mode))

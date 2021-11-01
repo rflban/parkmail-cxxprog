@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 3.16)
 
-add_subdirectory(serial)
-add_subdirectory(parallel)
-
-set(SOURCES ${SERIAL_SOURCES} PARENT_SCOPE)
-#set(SOURCES ${PARALLEL_SOURCES} PARENT_SCOPE)
+if(MULTIPROCESS)
+    add_subdirectory(parallel)
+    set(SOURCES ${PARALLEL_SOURCES} PARENT_SCOPE)
+else()
+    add_subdirectory(serial)
+    set(SOURCES ${SERIAL_SOURCES} PARENT_SCOPE)
+endif()

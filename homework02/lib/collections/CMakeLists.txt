@@ -4,8 +4,9 @@ project(collections C CXX)
 
 add_subdirectory(src)
 
-enable_testing()
-add_subdirectory(tests)
+if(WITH_TESTS)
+    add_subdirectory(tests)
+endif()
 
 add_library(collections SHARED ${SOURCES})
 
