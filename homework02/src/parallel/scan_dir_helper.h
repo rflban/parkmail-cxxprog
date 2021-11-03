@@ -20,9 +20,6 @@
 #include "collections/string.h"
 #include "collections/vector.h"
 
-ENABLE_VECTOR_OF(string_t)
-ENABLE_VECTOR_OF(match_t)
-
 struct runner_args {
     size_t start;
     size_t end;
@@ -56,7 +53,7 @@ static int perform_task(struct runner_args* args) {
         string_deinit(&to_delete);
     }
 
-    return MATCHES_SUCCESS;
+    return rc;
 }
 
 static pid_t run_fork(struct runner_args args, int* rc) {
@@ -137,9 +134,7 @@ static int scan_files(match_t* all_matches, size_t files_qty,
     }
 
     int status;
-    pid_t child;
-
-    while ((child = wait(&status)) != -1) {
+    while (wait(&status) != -1) {
         if (!WIFEXITED(status)) {
             rc = MATCHES_CHILD_ERROR;
         }

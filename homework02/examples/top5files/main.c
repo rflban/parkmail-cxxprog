@@ -8,8 +8,6 @@
 
 #define QTY_OF_BESTS 5
 
-ENABLE_VECTOR_OF(match_t)
-
 void print_usage(const char* pname);
 void print_matches_err(int rc);
 void print_collections_err(int rc);

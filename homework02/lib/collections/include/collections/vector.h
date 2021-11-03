@@ -2,6 +2,7 @@
 #define PARKMAIL_HW_COLLECTIONS_VECTOR_H_
 
 #include <stddef.h>
+#include <stdlib.h>
 
 #include "collections/returncodes.h"
 #include "collections/utils.h"

@@ -13,7 +13,7 @@ static int counttoken_file(FILE* stream, const char* token, size_t* count) {
     assert(stream && token && count);
 
     int exitcode = MATCHES_SUCCESS;
-    char test_char = 0;
+    int test_char = 0;
     char* buffer = NULL;
     size_t common_len = 0;
     size_t matches_count = 0;

@@ -10,8 +10,6 @@ extern "C" {
 #include "matches/returncodes.h"
 }
 
-ENABLE_VECTOR_OF(match_t)
-
 const char SEP[] = " ";
 const char TOKEN[] = "I am token!";
 const char NOT_EXISTING_DIR[] = "/idonotexists";

@@ -9,8 +9,6 @@
 #include "collections/string.h"
 #include "collections/vector.h"
 
-ENABLE_VECTOR_OF(match_t)
-
 static int scan_file(const char* dent_name, const char* token,
                      vector_of_match_t* best_matches) {
     assert(dent_name && token && best_matches && "NULL args are not allowed");
