@@ -118,6 +118,11 @@ jobs:
         with:
           name: report-valgrind
           path: homework02/report-valgrind
+      - name: Archive sanitizers report
+        uses: actions/upload-artifact@v2
+        with:
+          name: report-sanitizers
+          path: homework02/report-sanitizers
       - name: Archive coverage report
         uses: actions/upload-artifact@v2
         with:
