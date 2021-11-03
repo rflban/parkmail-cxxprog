@@ -7,7 +7,7 @@ on:
   pull_request:
     branches:
       - master
-jons:
+jobs:
   build_and_test:
     runs-on: ubuntu-20.04
     steps:
