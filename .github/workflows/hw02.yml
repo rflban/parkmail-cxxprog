@@ -104,6 +104,12 @@ jobs:
         run: |
           cd homework02
           ./build_parallel_san/tests/unittests/run_unittests_matches 2>&1 >./report-sanitizers/matches-parallel.txt
+      - name: Run stress test
+        run: |
+          cd homework02
+          mkdir ./tests/stresstest/data
+          python3 ./tests/stresstest/script/gendata ./tests/stresstest/data hi
+          bash ./tests/stresstest/script/run_stresstest.sh ./build_serial_san ./build_parallel_san >./report-stresstest/report.txt
       - name: Collect coverage report
         run: |
           cd homework02
@@ -123,6 +129,11 @@ jobs:
         with:
           name: report-sanitizers
           path: homework02/report-sanitizers
+      - name: Archive stress test report
+        uses: actions/upload-artifact@v2
+        with:
+          name: report-stresstest
+          path: homework02/report-stresstest
       - name: Archive coverage report
         uses: actions/upload-artifact@v2
         with:
