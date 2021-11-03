@@ -69,7 +69,10 @@ int scan_dir(const char* dirpath, const char* token,
         vector_of_match_t_deinit(&all_matches);
         return MATCHES_OPENDIR_ERROR;
     }
-    chdir(dirpath);
+    if (chdir(dirpath)) {
+        vector_of_match_t_deinit(&all_matches);
+        return MATCHES_OPENDIR_ERROR;
+    }
 
     DIR* dir = NULL;
 
@@ -107,6 +110,8 @@ int scan_dir(const char* dirpath, const char* token,
         for (; idx < all_matches.size; ++idx) {
             string_deinit(&all_matches.data[idx].filename);
         }
+    } else if (all_matches.size == 0) {
+        rc = MATCHES_EMPTYDIR_ERROR;
     }
 
     chdir(init_dirpath);

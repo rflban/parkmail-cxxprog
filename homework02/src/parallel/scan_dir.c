@@ -6,15 +6,17 @@ int scan_dir(const char* dirpath, const char* token,
         return MATCHES_NULLARG_ERROR;
     }
 
-    int rc = MATCHES_SUCCESS;
-    vector_of_string_t files;
-    vector_of_string_t_init(&files);
-
     char init_dirpath[PATH_MAX] = "";
     if (!getcwd(init_dirpath, sizeof(init_dirpath))) {
         return MATCHES_OPENDIR_ERROR;
     }
-    chdir(dirpath);
+    if (chdir(dirpath)) {
+        return MATCHES_OPENDIR_ERROR;
+    }
+
+    int rc = MATCHES_SUCCESS;
+    vector_of_string_t files;
+    vector_of_string_t_init(&files);
 
     rc = get_filenames(&files);
     if (rc != MATCHES_SUCCESS) {

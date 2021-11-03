@@ -77,6 +77,9 @@ void print_matches_err(int rc) {
         case MATCHES_OPENDIR_ERROR:
             perror("MATCHES: Can't open specified directory");
             break;
+        case MATCHES_EMPTYDIR_ERROR:
+            fprintf(stderr, "MATCHES: Specified is empty\n");
+            break;
         case MATCHES_OPENFILE_ERROR:
             perror("MATCHES: Can't open file in specified directory");
             break;

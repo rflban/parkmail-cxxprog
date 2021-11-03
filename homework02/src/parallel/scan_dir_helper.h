@@ -170,6 +170,7 @@ static int get_filenames(vector_of_string_t* filenames) {
         return MATCHES_OPENDIR_ERROR;
     }
 
+    size_t read_counter = 0;
     while (rc == MATCHES_SUCCESS && (dent = readdir(dir))) {
         if (strcmp(dent->d_name, ".") == 0 ||
             strcmp(dent->d_name, "..") == 0) {
@@ -191,8 +192,14 @@ static int get_filenames(vector_of_string_t* filenames) {
                 vector_of_string_t_add(filenames, file)
             );
         }
+
+        ++read_counter;
     }
     closedir(dir);
+
+    if (MATCHES_SUCCESS == rc && read_counter == 0) {
+        rc = MATCHES_EMPTYDIR_ERROR;
+    }
 
     if (MATCHES_SUCCESS != rc) {
         for (size_t idx = 0; idx < filenames->size; ++idx) {
