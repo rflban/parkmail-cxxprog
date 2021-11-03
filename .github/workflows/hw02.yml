@@ -13,11 +13,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
-      - name: Create PVS-Studio license file
-        run: |
-          echo ${{secrets.PVS_STUDIO_LIC_EMAIL}} > homework02/PVS-Studio.lic
-          echo ${{secrets.PVS_STUDIO_LIC_KEY}} >> homework02/PVS-Studio.lic
-          cat homework02/PVS-Studio.lic
       - name: Install tools and dependencies
         run: |
           sudo apt install build-essential
@@ -33,6 +28,10 @@ jobs:
             https://files.pvs-studio.com/etc/viva64.list
           sudo apt-get update
           sudo apt install pvs-studio
+      - name: Create PVS-Studio license file
+        run: |
+          echo ${{secrets.PVS_STUDIO_LIC_EMAIL}} > homework02/PVS-Studio.lic
+          echo ${{secrets.PVS_STUDIO_LIC_KEY}} >> homework02/PVS-Studio.lic
       - name: Create report directories
         run: |
           mkdir homework02/{report-valgrind,report-sanitizers,report-linters,report-stresstest}
