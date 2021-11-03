@@ -22,6 +22,9 @@ jobs:
           sudo apt install clang-tidy
           sudo apt install libgtest-dev
           sudo apt install ripgrep
+      - name: Create PVS-Studio license file
+        run: |
+          echo "$PVS_STUDIO_LIC_EMAIL\n$PVS_STUDIO_LIC_KEY" > homework02/PVS-Studio.lic
       - name: Create report directories
         run: |
           mkdir homework02/{report-valgrind,report-sanitizers,report-linters,report-stresstest}
@@ -53,6 +56,24 @@ jobs:
             -DCMAKE_BUILD_TYPE=Debug -DWITH_COVERAGE=1 -DWITH_ASAN=1 \
             -DMULTIPROCESS=1 -DWITH_TESTS=1
           cmake --build build_parallel_san
+      - name: Run clang-tidy for serial matches
+        run: |
+          cd homework02
+          run-clang-tidy -header-filter='.*' "./*" -p ./build_serial > ./report-linters/clang-tidy_serial.txt
+      - name: Run clang-tidy for multiprocess matches
+        run: |
+          cd homework02
+          run-clang-tidy -header-filter='.*' "./*" -p ./build_parallel > ./report-linters/clang-tidy_multiprocess.txt
+      - name: Run pvs-studio for serial matches
+        run: |
+          cd homework02/build_serial
+          pvs-studio-analyzer analyze -l ../PVS-Studio.lic
+          plog-converter -a GA:1,2 -t tasklist PVS-Studio.log > ../report-linters/pvs-studio_serial.txt
+      - name: Run pvs-studio for multiprocess matches
+        run: |
+          cd homework02/build_parallel
+          pvs-studio-analyzer analyze -l ../PVS-Studio.lic
+          plog-converter -a GA:1,2 -t tasklist PVS-Studio.log > ../report-linters/pvs-studio_parallel.txt
       - name: Run collections unit tests
         run: |
           cd homework02
