@@ -110,7 +110,11 @@ int scan_dir(const char* dirpath, const char* token,
         for (; idx < all_matches.size; ++idx) {
             string_deinit(&all_matches.data[idx].filename);
         }
-    } else if (all_matches.size == 0) {
+    } else if (rc != MATCHES_SUCCESS && all_matches.size > 0) {
+        for (size_t idx = 0; idx < all_matches.size; ++idx) {
+            string_deinit(&all_matches.data[idx].filename);
+        }
+    } else if (rc == MATCHES_SUCCESS && all_matches.size == 0) {
         rc = MATCHES_EMPTYDIR_ERROR;
     }
 

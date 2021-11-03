@@ -23,6 +23,10 @@ static int counttoken_file(FILE* stream, const char* token, size_t* count) {
         return COLLECTIONS_ALLOC_ERROR;
     }
 
+    test_char = fgetc(stream);
+    if (test_char != EOF) {
+        ungetc(test_char, stream);
+    }
     while (!feof(stream)) {
         if (fgets(buffer, BUFFER_SIZE, stream) == NULL) {
             exitcode = MATCHES_INPUT_ERROR;
