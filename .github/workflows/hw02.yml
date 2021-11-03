@@ -70,6 +70,7 @@ jobs:
         run: |
           cd homework02
           ./build_serial_san/lib/collections/tests/unittests/run_unittests_collections 2>&1 >./report-sanitizers/collections.txt
+          cat ./report-sanitizers/collections.txt
       - name: Run serial matches unit tests
         run: |
           cd homework02
@@ -87,6 +88,7 @@ jobs:
         run: |
           cd homework02
           ./build_serial_san/tests/unittests/run_unittests_matches 2>&1 >./report-sanitizers/matches-serial.txt
+          cat ./report-sanitizers/matches-serial.txt
       - name: Run multiprocess matches unit tests
         run: |
           cd homework02
@@ -104,6 +106,7 @@ jobs:
         run: |
           cd homework02
           ./build_parallel_san/tests/unittests/run_unittests_matches 2>&1 >./report-sanitizers/matches-parallel.txt
+          cat ./report-sanitizers/matches-parallel.txt
       - name: Run stress test
         run: |
           cd homework02
