@@ -31,6 +31,7 @@ jobs:
       - name: Create PVS-Studio license file
         run: |
           echo "$PVS_STUDIO_LIC_EMAIL\n$PVS_STUDIO_LIC_KEY" > homework02/PVS-Studio.lic
+          cat homework02/PVS-Studio.lic
       - name: Create report directories
         run: |
           mkdir homework02/{report-valgrind,report-sanitizers,report-linters,report-stresstest}
