@@ -67,6 +67,7 @@ jobs:
             -- ./build_serial/lib/collections/tests/unittests/run_unittests_collections
           cat ./report-valgrind/collections.txt
       - name: Sanitizers check collections
+        run: |
           cd homework02
           ./build_serial_san/lib/collections/tests/unittests/run_unittests_collections 2>&1 >./report-sanitizers/collections.txt
       - name: Run serial matches unit tests
@@ -74,6 +75,7 @@ jobs:
           cd homework02
           ./build_serial/tests/unittests/run_unittests_matches
       - name: Valgrind check serial matches
+        run: |
           cd homework02
           valgrind \
             --tool=memcheck --leak-check=full \
@@ -90,6 +92,7 @@ jobs:
           cd homework02
           ./build_parallel/tests/unittests/run_unittests_matches
       - name: Valgrind check multiprocess matches
+        run: |
           cd homework02
           valgrind \
             --tool=memcheck --leak-check=full \
