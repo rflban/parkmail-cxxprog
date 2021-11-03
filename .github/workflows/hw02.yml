@@ -108,7 +108,7 @@ jobs:
         run: |
           cd homework02
           mkdir ./tests/stresstest/data
-          python3 ./tests/stresstest/script/gendata ./tests/stresstest/data hi
+          python3 ./tests/stresstest/script/gendata.py ./tests/stresstest/data hi
           bash ./tests/stresstest/script/run_stresstest.sh ./build_serial_san ./build_parallel_san >./report-stresstest/report.txt
       - name: Collect coverage report
         run: |
