@@ -22,6 +22,11 @@ jobs:
           sudo apt install clang-tidy
           sudo apt install libgtest-dev
           sudo apt install ripgrep
+          wget -q -O - https://files.pvs-studio.com/etc/pubkey.txt | \
+            sudo apt-key add -
+          sudo wget -O /etc/apt/sources.list.d/viva64.list \
+            https://files.pvs-studio.com/etc/viva64.list
+          sudo apt-get update
           sudo apt install pvs-studio
       - name: Create PVS-Studio license file
         run: |
