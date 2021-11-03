@@ -6,8 +6,8 @@ path_to_data="$path_to_test_root/data"
 token="hi"
 rating_size=5
 
-serial_run="$path_to_serial_build/$path_to_test_root/run ./$path_to_data $token $rating_size"
-parallel_run="$path_to_parallel_build/$path_to_test_root/run ./$path_to_data $token $rating_size"
+serial_run="$path_to_serial_build/$path_to_test_root/run_stresstest_matches ./$path_to_data $token $rating_size"
+parallel_run="$path_to_parallel_build/$path_to_test_root/run_stresstest_matches ./$path_to_data $token $rating_size"
 
 rg_output=$(
     sed -E "s/^(\S+) (.+)$/\2: \1/" <(

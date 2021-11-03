@@ -34,11 +34,12 @@ endif()
 
 add_subdirectory(lib)
 add_subdirectory(src)
-add_library(matches SHARED ${SOURCES})
 
 if(WITH_TESTS)
     add_subdirectory(tests)
 endif()
+
+add_library(matches SHARED ${SOURCES})
 
 target_link_libraries(matches PUBLIC collections)
 target_include_directories(matches PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
