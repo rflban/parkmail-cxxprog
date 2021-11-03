@@ -22,6 +22,7 @@ jobs:
           sudo apt install clang-tidy
           sudo apt install libgtest-dev
           sudo apt install ripgrep
+          sudo apt install pvs-studio
       - name: Create PVS-Studio license file
         run: |
           echo "$PVS_STUDIO_LIC_EMAIL\n$PVS_STUDIO_LIC_KEY" > homework02/PVS-Studio.lic
@@ -148,6 +149,11 @@ jobs:
           lcov --extract parallel.info "*/homework02/*" -o parallel.info
           lcov --add-tracefile serial.info -a parallel.info -o homework02.info
           genhtml -o report-coverage homework02.info
+      - name: Archive linters report
+        uses: actions/upload-artifact@v2
+        with:
+          name: report-linters
+          path: homework02/report-linters
       - name: Archive valgrind report
         uses: actions/upload-artifact@v2
         with:
