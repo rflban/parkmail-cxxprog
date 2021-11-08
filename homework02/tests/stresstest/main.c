@@ -59,6 +59,7 @@ void print_matches_err(int rc) {
                     "MATCHES: Forbidden NULL pointer have been"
                     "passed to function parameters\n");
             break;
+        case MATCHES_MUNMAP_ERROR:
         case MATCHES_MMAP_ERROR:
             perror("MATCHES: Internal memory map error");
             break;
@@ -67,6 +68,9 @@ void print_matches_err(int rc) {
             break;
         case MATCHES_WAIT_ERROR:
             perror("MATCHES: Internal process wait error");
+            break;
+        case MATCHES_FORK_ERROR:
+            perror("MATCHES: fork() failed");
             break;
         case MATCHES_CHILD_ERROR:
             perror("MATCHES: Child process terminated with error");

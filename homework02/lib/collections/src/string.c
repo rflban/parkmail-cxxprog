@@ -22,12 +22,11 @@ int string_init(string_t* self, const char* str) {
     return COLLECTIONS_SUCCESS;
 }
 
-int string_deinit(string_t* self) {
+void string_deinit(string_t* self) {
     if (!self) {
-        return COLLECTIONS_NULLARG_ERROR;
+        return;
     }
 
     free(self->data);
     self->data = NULL;
-    return COLLECTIONS_SUCCESS;
 }

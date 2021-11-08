@@ -6,10 +6,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "counttoken.h"
+#include "count_token.h"
 #include "matches/returncodes.h"
 
-static int counttoken_file(FILE* stream, const char* token, size_t* count) {
+static int count_token_file(FILE* stream, const char* token, size_t* count) {
     assert(stream && token && count);
 
     int exitcode = MATCHES_SUCCESS;
@@ -33,7 +33,7 @@ static int counttoken_file(FILE* stream, const char* token, size_t* count) {
             break;
         }
 
-        matches_count += counttoken(buffer, token, &common_len);
+        matches_count += count_token(buffer, token, &common_len);
 
         test_char = fgetc(stream);
         if (test_char != EOF) {

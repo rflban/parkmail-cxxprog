@@ -5,7 +5,7 @@ project(matches C CXX)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 
-add_compile_options(-Wall -Werror -pedantic)
+add_compile_options(-Wall -Werror -pedantic -Wno-unknown-pragmas -Wno-sign-compare -Wwrite-strings -Wno-unused)
 add_compile_options("$<$<CONFIG:DEBUG>:-g3>")
 
 option(WITH_COVERAGE "Add coverage estimation")

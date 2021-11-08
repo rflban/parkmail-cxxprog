@@ -4,7 +4,7 @@
 #include <assert.h>
 
 #include "util.h"
-#include "counttoken_file.h"
+#include "count_token_file.h"
 #include "matches/returncodes.h"
 #include "collections/string.h"
 #include "collections/vector.h"
@@ -21,7 +21,7 @@ static int scan_file(const char* dent_name, const char* token,
         return MATCHES_OPENFILE_ERROR;
     }
 
-    rc = counttoken_file(stream, token, &token_count);
+    rc = count_token_file(stream, token, &token_count);
     fclose(stream);
     if (rc != MATCHES_SUCCESS) {
         return rc;

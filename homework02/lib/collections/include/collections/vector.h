@@ -41,16 +41,16 @@ int XCONCAT(VECTOR_FUN_PREFIX(T), _init)(VECTOR_TYPE(T)* self) {               \
 }                                                                              \
                                                                                \
 static inline                                                                  \
-int XCONCAT(VECTOR_FUN_PREFIX(T), _deinit)(VECTOR_TYPE(T)* self) {             \
+void XCONCAT(VECTOR_FUN_PREFIX(T), _deinit)(VECTOR_TYPE(T)* self) {            \
     if (!self) {                                                               \
-        return COLLECTIONS_NULLARG_ERROR;                                      \
+        return;                                                                \
     }                                                                          \
                                                                                \
     free(self->data);                                                          \
     self->size = 0;                                                            \
     self->data = NULL;                                                         \
     self->capacity = 0;                                                        \
-    return COLLECTIONS_SUCCESS;                                                \
+    return;                                                                    \
 }                                                                              \
                                                                                \
 static inline                                                                  \

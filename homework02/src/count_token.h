@@ -5,7 +5,7 @@
 #include <string.h>
 #include <assert.h>
 
-static size_t counttoken(const char* str, const char* token,
+static size_t count_token(const char* str, const char* token,
                          size_t* common_len) {
     assert(str && token && common_len);
 
