@@ -1,0 +1,182 @@
+name: Homework02 CI
+on:
+  push:
+    branches:
+      - hw02
+      - master
+  pull_request:
+    branches:
+      - master
+jobs:
+  build_and_test:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Install tools and dependencies
+        run: |
+          sudo apt install build-essential
+          sudo apt install git
+          sudo apt install lcov
+          sudo apt install valgrind
+          sudo apt install clang-tidy
+          sudo apt install libgtest-dev
+          sudo apt install ripgrep
+          wget -q -O - https://files.pvs-studio.com/etc/pubkey.txt | \
+            sudo apt-key add -
+          sudo wget -O /etc/apt/sources.list.d/viva64.list \
+            https://files.pvs-studio.com/etc/viva64.list
+          sudo apt-get update
+          sudo apt install pvs-studio
+      - name: Create PVS-Studio license file
+        run: |
+          echo ${{secrets.PVS_STUDIO_LIC_EMAIL}} > homework02/PVS-Studio.lic
+          echo ${{secrets.PVS_STUDIO_LIC_KEY}} >> homework02/PVS-Studio.lic
+      - name: Create report directories
+        run: |
+          mkdir homework02/{report-valgrind,report-sanitizers,report-linters,report-stresstest}
+      - name: Build serial implementation
+        run: |
+          cd homework02
+          cmake -B build_serial -DCMAKE_EXPORT_COMPILE_COMMANDS=1 \
+            -DCMAKE_BUILD_TYPE=Debug -DWITH_COVERAGE=1 -DWITH_ASAN=0 \
+            -DMULTIPROCESS=0 -DWITH_TESTS=1
+          cmake --build build_serial
+      - name: Build serial implementation with sanitizers
+        run: |
+          cd homework02
+          cmake -B build_serial_san -DCMAKE_EXPORT_COMPILE_COMMANDS=1 \
+            -DCMAKE_BUILD_TYPE=Debug -DWITH_COVERAGE=1 -DWITH_ASAN=1 \
+            -DMULTIPROCESS=0 -DWITH_TESTS=1
+          cmake --build build_serial_san
+      - name: Build multiprocess implementation
+        run: |
+          cd homework02
+          cmake -B build_parallel -DCMAKE_EXPORT_COMPILE_COMMANDS=1 \
+            -DCMAKE_BUILD_TYPE=Debug -DWITH_COVERAGE=1 -DWITH_ASAN=0 \
+            -DMULTIPROCESS=1 -DWITH_TESTS=1
+          cmake --build build_parallel
+      - name: Build multiprocess implementation with sanitizers
+        run: |
+          cd homework02
+          cmake -B build_parallel_san -DCMAKE_EXPORT_COMPILE_COMMANDS=1 \
+            -DCMAKE_BUILD_TYPE=Debug -DWITH_COVERAGE=1 -DWITH_ASAN=1 \
+            -DMULTIPROCESS=1 -DWITH_TESTS=1
+          cmake --build build_parallel_san
+      - name: Run clang-tidy for serial matches
+        run: |
+          cd homework02
+          run-clang-tidy -header-filter='.*' "./*" -p ./build_serial > ./report-linters/clang-tidy_serial.txt
+          cat ./report-linters/clang-tidy_serial.txt
+      - name: Run clang-tidy for multiprocess matches
+        run: |
+          cd homework02
+          run-clang-tidy -header-filter='.*' "./*" -p ./build_parallel > ./report-linters/clang-tidy_multiprocess.txt
+          cat ./report-linters/clang-tidy_multiprocess.txt
+      - name: Run pvs-studio for serial matches
+        run: |
+          cd homework02/build_serial
+          pvs-studio-analyzer analyze -l ../PVS-Studio.lic
+          plog-converter -a GA:1,2 -t tasklist PVS-Studio.log > ../report-linters/pvs-studio_serial.txt
+          cat ../report-linters/pvs-studio_serial.txt
+      - name: Run pvs-studio for multiprocess matches
+        run: |
+          cd homework02/build_parallel
+          pvs-studio-analyzer analyze -l ../PVS-Studio.lic
+          plog-converter -a GA:1,2 -t tasklist PVS-Studio.log > ../report-linters/pvs-studio_parallel.txt
+          cat ../report-linters/pvs-studio_parallel.txt
+      - name: Run collections unit tests
+        run: |
+          cd homework02
+          ./build_serial/lib/collections/tests/unittests/run_unittests_collections
+      - name: Valgrind check collections
+        run: |
+          cd homework02
+          valgrind \
+            --tool=memcheck --leak-check=full \
+            --show-leak-kinds=all --undef-value-errors=no \
+            --verbose --log-file=./report-valgrind/collections.txt \
+            -- ./build_serial/lib/collections/tests/unittests/run_unittests_collections
+          cat ./report-valgrind/collections.txt
+      - name: Sanitizers check collections
+        run: |
+          cd homework02
+          ./build_serial_san/lib/collections/tests/unittests/run_unittests_collections 2>&1 >./report-sanitizers/collections.txt
+          cat ./report-sanitizers/collections.txt
+      - name: Run serial matches unit tests
+        run: |
+          cd homework02
+          ./build_serial/tests/unittests/run_unittests_matches
+      - name: Valgrind check serial matches
+        run: |
+          cd homework02
+          valgrind \
+            --tool=memcheck --leak-check=full \
+            --show-leak-kinds=all --undef-value-errors=no \
+            --verbose --log-file=./report-valgrind/matches-serial.txt \
+            -- ./build_serial/tests/unittests/run_unittests_matches
+          cat ./report-valgrind/matches-serial.txt
+      - name: Sanitizers check serial matches
+        run: |
+          cd homework02
+          ./build_serial_san/tests/unittests/run_unittests_matches 2>&1 >./report-sanitizers/matches-serial.txt
+          cat ./report-sanitizers/matches-serial.txt
+      - name: Run multiprocess matches unit tests
+        run: |
+          cd homework02
+          ./build_parallel/tests/unittests/run_unittests_matches
+      - name: Valgrind check multiprocess matches
+        run: |
+          cd homework02
+          valgrind \
+            --tool=memcheck --leak-check=full \
+            --show-leak-kinds=all --undef-value-errors=no \
+            --verbose --log-file=./report-valgrind/matches-parallel.txt \
+            -- ./build_parallel/tests/unittests/run_unittests_matches
+          cat ./report-valgrind/matches-parallel.txt
+      - name: Sanitizers check multiprocess matches
+        run: |
+          cd homework02
+          ./build_parallel_san/tests/unittests/run_unittests_matches 2>&1 >./report-sanitizers/matches-parallel.txt
+          cat ./report-sanitizers/matches-parallel.txt
+      - name: Run stress test
+        run: |
+          cd homework02
+          mkdir ./tests/stresstest/data
+          python3 ./tests/stresstest/script/gendata.py ./tests/stresstest/data hi
+          bash ./tests/stresstest/script/run_stresstest.sh ./build_serial_san ./build_parallel_san >./report-stresstest/report.txt
+          cat ./report-stresstest/report.txt
+      - name: Collect coverage report
+        run: |
+          cd homework02
+          lcov -t "serial" -o serial.info -c -d ./build_serial
+          lcov --extract serial.info "*/homework02/*" -o serial.info
+          lcov -t "parallel" -o parallel.info -c -d ./build_parallel
+          lcov --extract parallel.info "*/homework02/*" -o parallel.info
+          lcov --add-tracefile serial.info -a parallel.info -o homework02.info
+          genhtml -o report-coverage homework02.info
+      - name: Archive linters report
+        uses: actions/upload-artifact@v2
+        with:
+          name: report-linters
+          path: homework02/report-linters
+      - name: Archive valgrind report
+        uses: actions/upload-artifact@v2
+        with:
+          name: report-valgrind
+          path: homework02/report-valgrind
+      - name: Archive sanitizers report
+        uses: actions/upload-artifact@v2
+        with:
+          name: report-sanitizers
+          path: homework02/report-sanitizers
+      - name: Archive stress test report
+        uses: actions/upload-artifact@v2
+        with:
+          name: report-stresstest
+          path: homework02/report-stresstest
+      - name: Archive coverage report
+        uses: actions/upload-artifact@v2
+        with:
+          name: report-coverage
+          path: homework02/report-coverage
